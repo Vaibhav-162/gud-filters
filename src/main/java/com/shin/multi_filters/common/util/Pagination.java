@@ -14,6 +14,6 @@ public class Pagination<T> {
             pageSize=DEFAULT_PAGE_SIZE;
             pageNumber=DEFAULT_PAGE_NUMBER;
         }
-        return PageRequest.of(pageNumber, pageSize, Optional.ofNullable(sort).isEmpty() ? org.springframework.data.domain.Sort.unsorted() : sort);
+        return PageRequest.of(pageNumber, pageSize, Optional.ofNullable(sort).isEmpty() ? Sort.unsorted() : sort);
     }
 }

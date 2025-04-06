@@ -2,10 +2,7 @@ package com.shin.multi_filters.common.util;
 
 import com.shin.multi_filters.common.FilterCriteria;
 import com.shin.multi_filters.common.FilterOperations;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,7 +12,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Component
 public class FiltrationSpecification<T> {
@@ -41,72 +40,69 @@ public class FiltrationSpecification<T> {
         String operator = filterCriteria.getOperator();
         var value = getValueAsPerJavaDataType(filterCriteria.getValue(), root, field);
 
-        Expression<String> tableField = root.get(field);
-        Expression<LocalDate> dateExpression = cb.function("DATE", LocalDate.class, tableField);
+        Expression<LocalDate> dateExpression = cb.function("DATE", LocalDate.class, root.get(field));
         return switch (operator) {
-            case FilterOperations.IS_NULL -> cb.isNull(tableField);
+            case FilterOperations.IS_NULL -> cb.isNull(root.get(field));
             case FilterOperations.EQUALS -> {
                 if (value instanceof LocalDate || value instanceof LocalDateTime)
                     yield cb.equal(dateExpression, value);
                 else if (value instanceof Boolean || value instanceof Number)
-                    yield cb.equal(tableField, value);
+                    yield cb.equal(root.get(field), value);
                 else if (value instanceof String)
-                    yield cb.equal(cb.lower(cb.trim(tableField)), ((String) value).trim().toLowerCase());
-                yield cb.equal(tableField, value);
+                    yield cb.equal(cb.lower(cb.trim(root.get(field))), ((String) value).trim().toLowerCase());
+                yield cb.equal(root.get(field), value);
             }
-            case FilterOperations.CONTAINS -> cb.like(tableField, "%" + value + "%");
-            case FilterOperations.STARTS_WITH -> cb.like(tableField, "%" + value);
-            case FilterOperations.ENDS_WITH -> cb.like(tableField, value + "%");
+            case FilterOperations.CONTAINS -> cb.like(root.get(field), "%" + value + "%");
+            case FilterOperations.STARTS_WITH -> cb.like(root.get(field), "%" + value);
+            case FilterOperations.ENDS_WITH -> cb.like(root.get(field), value + "%");
             case FilterOperations.LESS_THAN -> {
                 if (value instanceof LocalDate)
-                    yield cb.lessThan(dateExpression, DateTimeParser.parseLocalDate(value.toString()));
+                    yield cb.lessThan(dateExpression, DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
-                    yield cb.lessThan(dateExpression, DateTimeParser.parseLocalDate(value.toString()));
-                yield cb.lessThan(tableField, (Comparable) value);
+                    yield cb.lessThan(dateExpression, DateTimeParser.smartParse(value.toString()));
+                yield cb.lessThan(root.get(field), (Comparable) value);
             }
             case FilterOperations.LESS_THAN_OR_EQUAL_TO -> {
                 if (value instanceof LocalDate)
-                    yield cb.lessThanOrEqualTo(dateExpression, DateTimeParser.parseLocalDate(value.toString()));
+                    yield cb.lessThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
-                    yield cb.lessThanOrEqualTo(dateExpression, DateTimeParser.parseLocalDate(value.toString()));
-                yield cb.lessThanOrEqualTo(tableField, (Comparable) value);
+                    yield cb.lessThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
+                yield cb.lessThanOrEqualTo(root.get(field), (Comparable) value);
             }
             case FilterOperations.GREATER_THAN -> {
                 if (value instanceof LocalDate)
-                    yield cb.greaterThan(dateExpression, DateTimeParser.parseLocalDate(value.toString()));
+                    yield cb.greaterThan(dateExpression, DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
-                    yield cb.greaterThan(dateExpression, DateTimeParser.parseLocalDate(value.toString()));
-                yield cb.greaterThan(tableField, (Comparable) value);
+                    yield cb.greaterThan(dateExpression, DateTimeParser.smartParse(value.toString()));
+                yield cb.greaterThan(root.get(field), (Comparable) value);
             }
             case FilterOperations.GREATER_THAN_OR_EQUAL_TO -> {
                 if (value instanceof LocalDate)
-                    yield cb.greaterThanOrEqualTo(dateExpression, DateTimeParser.parseLocalDate(value.toString()));
+                    yield cb.greaterThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
-                    yield cb.greaterThanOrEqualTo(dateExpression, DateTimeParser.parseLocalDate(value.toString()));
-                yield cb.greaterThanOrEqualTo(tableField, (Comparable) value);
+                    yield cb.greaterThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
+                yield cb.greaterThanOrEqualTo(root.get(field), (Comparable) value);
             }
-            default -> cb.notEqual(tableField, value);
+            default -> cb.notEqual(root.get(field), value);
         };
     }
 
     private Object getValueAsPerJavaDataType(Object value, Root<T> root, String field) {
-        if (Optional.ofNullable(value).isEmpty()) return null;
-        else if (root.get(field).getJavaType().equals(Integer.class) && value instanceof String) {
-            return Integer.valueOf(value.toString());
-        } else if (root.get(field).getJavaType().equals(Long.class) && value instanceof String) {
-            return Long.valueOf(value.toString());
-        } else if (root.get(field).getJavaType().equals(Float.class) && value instanceof String) {
-            return Float.valueOf(value.toString());
-        } else if (root.get(field).getJavaType().equals(Double.class) && value instanceof String) {
-            return Double.valueOf(value.toString());
-        } else if (root.get(field).getJavaType().equals(BigDecimal.class) && value instanceof String) {
-            return BigDecimal.valueOf(Long.parseLong(value.toString()));
-        } else if (root.get(field).getJavaType().equals(LocalDate.class) && value instanceof String) {
-            return DateTimeParser.parseLocalDate(value.toString());
-        } else if (root.get(field).getJavaType().equals(LocalDateTime.class) && value instanceof String) {
-            return DateTimeParser.parseLocalDateTime(value.toString());
-        } else if (root.get(field).getJavaType().equals(Boolean.class) && value instanceof String) {
-            return Boolean.parseBoolean(value.toString());
-        } else return value;
+        Class<?> targetType = root.get(field).getJavaType();
+        if (value == null) return null;
+        if (!(value instanceof String)) return value;
+        String stringValue = value.toString();
+
+        Map<Class<?>, Function<String, ?>> converters = Map.of(
+                Integer.class, Integer::valueOf,
+                Long.class, Long::valueOf,
+                Float.class, Float::valueOf,
+                Double.class, Double::valueOf,
+                BigDecimal.class, s -> BigDecimal.valueOf(Long.parseLong(s)),
+                LocalDate.class, DateTimeParser::smartParse,
+                LocalDateTime.class, DateTimeParser::smartParse,
+                Boolean.class, Boolean::parseBoolean
+        );
+        return converters.getOrDefault(targetType, s -> s).apply(stringValue);
     }
 }

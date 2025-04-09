@@ -1,4 +1,4 @@
-package com.shin.multi_filters.common;
+package com.shin.gud_filters.common;
 
 import lombok.Data;
 import java.util.List;

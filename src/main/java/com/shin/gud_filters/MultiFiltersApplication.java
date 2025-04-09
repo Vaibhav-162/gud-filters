@@ -1,4 +1,4 @@
-package com.shin.multi_filters;
+package com.shin.gud_filters;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

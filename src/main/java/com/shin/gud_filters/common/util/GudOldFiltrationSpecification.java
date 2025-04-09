@@ -1,7 +1,6 @@
-package com.shin.multi_filters.common.util;
+package com.shin.gud_filters.common.util;
 
-import com.shin.multi_filters.common.FilterCriteria;
-import com.shin.multi_filters.common.FilterOperations;
+import com.shin.gud_filters.common.FilterCriteria;
 import jakarta.persistence.criteria.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +16,10 @@ import java.util.Optional;
 import java.util.function.Function;
 
 @Component
-public class FiltrationSpecification<T> {
-    Logger logger = LoggerFactory.getLogger(FiltrationSpecification.class);
+public class GudOldFiltrationSpecification {
+    Logger logger = LoggerFactory.getLogger(GudOldFiltrationSpecification.class);
 
-    public Specification<T> createSpecification(List<FilterCriteria> filterCriteriaList, Boolean andClause) {
+    public static <T> Specification<T> createSpecification(List<FilterCriteria> filterCriteriaList, Boolean andClause) {
         return (root, query, cb) -> {
             if (filterCriteriaList.isEmpty()) cb.conjunction();
             List<Predicate> predicates = new ArrayList<>();
@@ -35,15 +34,15 @@ public class FiltrationSpecification<T> {
         };
     }
 
-    private Predicate getPredicate(FilterCriteria filterCriteria, CriteriaBuilder cb, Root<T> root) {
+    private static <T> Predicate getPredicate(FilterCriteria filterCriteria, CriteriaBuilder cb, Root<T> root) {
         String field = filterCriteria.getFilterField();
         String operator = filterCriteria.getOperator();
         var value = getValueAsPerJavaDataType(filterCriteria.getValue(), root, field);
 
         Expression<LocalDate> dateExpression = cb.function("DATE", LocalDate.class, root.get(field));
         return switch (operator) {
-            case FilterOperations.IS_NULL -> cb.isNull(root.get(field));
-            case FilterOperations.EQUALS -> {
+            case FilterCriteria.FilterOperations.IS_NULL -> cb.isNull(root.get(field));
+            case FilterCriteria.FilterOperations.EQUALS -> {
                 if (value instanceof LocalDate || value instanceof LocalDateTime)
                     yield cb.equal(dateExpression, value);
                 else if (value instanceof Boolean || value instanceof Number)
@@ -52,31 +51,31 @@ public class FiltrationSpecification<T> {
                     yield cb.equal(cb.lower(cb.trim(root.get(field))), ((String) value).trim().toLowerCase());
                 yield cb.equal(root.get(field), value);
             }
-            case FilterOperations.CONTAINS -> cb.like(root.get(field), "%" + value + "%");
-            case FilterOperations.STARTS_WITH -> cb.like(root.get(field), "%" + value);
-            case FilterOperations.ENDS_WITH -> cb.like(root.get(field), value + "%");
-            case FilterOperations.LESS_THAN -> {
+            case FilterCriteria.FilterOperations.CONTAINS -> cb.like(root.get(field), "%" + value + "%");
+            case FilterCriteria.FilterOperations.STARTS_WITH -> cb.like(root.get(field), "%" + value);
+            case FilterCriteria.FilterOperations.ENDS_WITH -> cb.like(root.get(field), value + "%");
+            case FilterCriteria.FilterOperations.LESS_THAN -> {
                 if (value instanceof LocalDate)
                     yield cb.lessThan(dateExpression, DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
                     yield cb.lessThan(dateExpression, DateTimeParser.smartParse(value.toString()));
                 yield cb.lessThan(root.get(field), (Comparable) value);
             }
-            case FilterOperations.LESS_THAN_OR_EQUAL_TO -> {
+            case FilterCriteria.FilterOperations.LESS_THAN_OR_EQUAL_TO -> {
                 if (value instanceof LocalDate)
                     yield cb.lessThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
                     yield cb.lessThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
                 yield cb.lessThanOrEqualTo(root.get(field), (Comparable) value);
             }
-            case FilterOperations.GREATER_THAN -> {
+            case FilterCriteria.FilterOperations.GREATER_THAN -> {
                 if (value instanceof LocalDate)
                     yield cb.greaterThan(dateExpression, DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
                     yield cb.greaterThan(dateExpression, DateTimeParser.smartParse(value.toString()));
                 yield cb.greaterThan(root.get(field), (Comparable) value);
             }
-            case FilterOperations.GREATER_THAN_OR_EQUAL_TO -> {
+            case FilterCriteria.FilterOperations.GREATER_THAN_OR_EQUAL_TO -> {
                 if (value instanceof LocalDate)
                     yield cb.greaterThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
@@ -87,7 +86,7 @@ public class FiltrationSpecification<T> {
         };
     }
 
-    private Object getValueAsPerJavaDataType(Object value, Root<T> root, String field) {
+    private static <T> Object getValueAsPerJavaDataType(Object value, Root<T> root, String field) {
         Class<?> targetType = root.get(field).getJavaType();
         if (value == null) return null;
         if (!(value instanceof String)) return value;

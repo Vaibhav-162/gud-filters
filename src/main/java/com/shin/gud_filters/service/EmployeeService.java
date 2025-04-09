@@ -1,9 +1,9 @@
-package com.shin.multi_filters.service;
+package com.shin.gud_filters.service;
 
-import com.shin.multi_filters.common.FilterCriteria;
-import com.shin.multi_filters.common.FilterSortAndPageRequest;
-import com.shin.multi_filters.common.SortCriteria;
-import com.shin.multi_filters.repository.EmployeeRepository;
+import com.shin.gud_filters.common.FilterCriteria;
+import com.shin.gud_filters.common.FilterSortAndPageRequest;
+import com.shin.gud_filters.common.SortCriteria;
+import com.shin.gud_filters.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,6 @@ public class EmployeeService {
         Integer pageNumber = filterSortAndPageRequest.getPageNumber();
         Integer pageSize = filterSortAndPageRequest.getPageSize();
         List<SortCriteria> sortList = filterSortAndPageRequest.getSortCriteriaList();
-        return employeeRepository.findAllByCriteria(filters, andClause, pageNumber, pageSize, sortList);
+        return employeeRepository.findAllByGudOldCriteria(filters, andClause, pageNumber, pageSize, sortList);
     }
 }

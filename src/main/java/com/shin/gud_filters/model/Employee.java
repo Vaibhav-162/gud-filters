@@ -1,4 +1,4 @@
-package com.shin.multi_filters.model;
+package com.shin.gud_filters.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

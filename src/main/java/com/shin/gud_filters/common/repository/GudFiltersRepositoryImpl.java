@@ -1,10 +1,10 @@
-package com.shin.multi_filters.common.repository;
+package com.shin.gud_filters.common.repository;
 
-import com.shin.multi_filters.common.FilterCriteria;
-import com.shin.multi_filters.common.SortCriteria;
-import com.shin.multi_filters.common.util.FiltrationSpecification;
-import com.shin.multi_filters.common.util.Pagination;
-import com.shin.multi_filters.common.util.ShinSort;
+import com.shin.gud_filters.common.FilterCriteria;
+import com.shin.gud_filters.common.SortCriteria;
+import com.shin.gud_filters.common.util.GudOldFiltrationSpecification;
+import com.shin.gud_filters.common.util.GudOldPagination;
+import com.shin.gud_filters.common.util.GudOldSort;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -24,49 +24,43 @@ import java.util.List;
 import java.util.Optional;
 
 
-public class FilterPageAndSortRepositoryImpl<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements FilterPageAndSortRepository<T, ID> {
-    private final FiltrationSpecification<T> filtrationSpecification;
-    private final Pagination<T> paginationSpec;
-    private final ShinSort<T> sortSpec;
+public class GudFiltersRepositoryImpl<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements GudFiltersRepository<T, ID> {
     private final EntityManager entityManager;
     private final JpaMetamodelEntityInformation<T, ?> entityInformation;
     private Integer totalPageCount;
     private Long totalRows;
-    Logger logger = LoggerFactory.getLogger(FilterPageAndSortRepositoryImpl.class);
+    Logger logger = LoggerFactory.getLogger(GudFiltersRepositoryImpl.class);
 
 
-    public FilterPageAndSortRepositoryImpl(JpaMetamodelEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+    public GudFiltersRepositoryImpl(JpaMetamodelEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
         super(entityInformation, entityManager);
         this.entityInformation = entityInformation;
         this.entityManager = entityManager;
-        this.filtrationSpecification = new FiltrationSpecification<T>();
-        this.sortSpec = new ShinSort<T>();
-        this.paginationSpec = new Pagination<T>();
     }
 
     @Override
-    public Page<T> findAllByCriteria(List<FilterCriteria> filterCriteriaList) {
-        return findAllByCriteria(filterCriteriaList, false, null, null, null);
+    public Page<T> findAllByGudOldCriteria(List<FilterCriteria> filterCriteriaList) {
+        return findAllByGudOldCriteria(filterCriteriaList, false, null, null, null);
     }
 
     @Override
-    public Page<T> findAllByCriteria(List<FilterCriteria> filterCriteriaList, Integer pageNumber, Integer pageSize) {
-        return findAllByCriteria(filterCriteriaList, false, pageNumber, pageSize, null);
+    public Page<T> findAllByGudOldCriteria(List<FilterCriteria> filterCriteriaList, Integer pageNumber, Integer pageSize) {
+        return findAllByGudOldCriteria(filterCriteriaList, false, pageNumber, pageSize, null);
     }
 
     @Override
-    public Page<T> findAllByCriteria(List<FilterCriteria> filterCriteriaList, Integer pageNumber, Integer pageSize, List<SortCriteria> sortCriteriaList) {
-        return findAllByCriteria(filterCriteriaList, false, pageNumber, pageSize, sortCriteriaList);
+    public Page<T> findAllByGudOldCriteria(List<FilterCriteria> filterCriteriaList, Integer pageNumber, Integer pageSize, List<SortCriteria> sortCriteriaList) {
+        return findAllByGudOldCriteria(filterCriteriaList, false, pageNumber, pageSize, sortCriteriaList);
     }
 
     @Override
-    public Page<T> findAllByCriteria(List<FilterCriteria> filterCriteriaList, Boolean andClause, Integer pageNumber, Integer pageSize, List<SortCriteria> sortCriteriaList) {
-        Sort sort = sortSpec.createSort(sortCriteriaList);
+    public Page<T> findAllByGudOldCriteria(List<FilterCriteria> filterCriteriaList, Boolean andClause, Integer pageNumber, Integer pageSize, List<SortCriteria> sortCriteriaList) {
+        Sort sort = GudOldSort.createSort(sortCriteriaList);
 
-        Pageable page = paginationSpec.paginate(pageNumber, pageSize, sort);
+        Pageable page = GudOldPagination.paginate(pageNumber, pageSize, sort);
         Specification<T> spec = Optional.ofNullable(filterCriteriaList).isEmpty() || filterCriteriaList.isEmpty()
                 ? null
-                : filtrationSpecification.createSpecification(filterCriteriaList, andClause);
+                : GudOldFiltrationSpecification.createSpecification(filterCriteriaList, andClause);
         return buildQuery(spec, page);
     }
 
@@ -80,7 +74,7 @@ public class FilterPageAndSortRepositoryImpl<T, ID extends Serializable> extends
         }
 
         if (!page.getSort().isEmpty()) {
-            query.orderBy(sortSpec.buildOrderBy(page.getSort(), root, criteriaBuilder));
+            query.orderBy(GudOldSort.buildOrderBy(page.getSort(), root, criteriaBuilder));
         }
         return executeQuery(query, page);
     }

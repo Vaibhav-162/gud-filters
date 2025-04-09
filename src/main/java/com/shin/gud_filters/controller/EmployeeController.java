@@ -1,7 +1,7 @@
-package com.shin.multi_filters.controller;
+package com.shin.gud_filters.controller;
 
-import com.shin.multi_filters.common.FilterSortAndPageRequest;
-import com.shin.multi_filters.service.EmployeeService;
+import com.shin.gud_filters.common.FilterSortAndPageRequest;
+import com.shin.gud_filters.service.EmployeeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

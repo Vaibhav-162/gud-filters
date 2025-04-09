@@ -1,4 +1,4 @@
-package com.shin.multi_filters.common.util;
+package com.shin.gud_filters.common.util;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

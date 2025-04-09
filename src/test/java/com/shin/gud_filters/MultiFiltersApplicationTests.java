@@ -1,4 +1,4 @@
-package com.shin.multi_filters;
+package com.shin.gud_filters;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

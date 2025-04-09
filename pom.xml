@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.shin</groupId>
-	<artifactId>multi-filters</artifactId>
+	<artifactId>gud-filters</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>multi-filters</name>
 	<description>Demo project for Spring Boot</description>

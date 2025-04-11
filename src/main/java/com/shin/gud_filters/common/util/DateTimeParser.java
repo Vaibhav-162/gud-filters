@@ -9,11 +9,13 @@ public class DateTimeParser {
     // Date-Time format string constants
 
     public static final String ISO_DATE_TIME_BASIC = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String ISO_DATE_TIME_IN_MILLIS = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS";
     public static final String ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSXXX";
     public static final String ISO_DATE_FORMAT_WITH_Z = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS'Z'";
     public static final String ISO_DATE_FORMAT_WITH_XXX = "yyyy-MM-dd'T'HH:mm:ssXXX";
     public static final String ISO_DATE_FORMAT_WITH_Z_SIMPLE = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     public static final String DEFAULT_DATE_FORMAT_WITH_MILLIS = "yyyy-MM-dd HH:mm:ss.SSSSSSSSS";
+
     public static final String DEFAULT_DATE_FORMAT_SIMPLE = "yyyy-MM-dd HH:mm:ss";
     public static final String DEFAULT_DATE_FORMAT_WITH_HOURS_AND_MINUTES = "yyyy-MM-dd HH:mm";
     public static final String DATE_FORMAT_MM_DD_YYYY_HH_MM_SS = "MM/dd/yyyy HH:mm:ss";
@@ -39,6 +41,7 @@ public class DateTimeParser {
     // DateTimeFormatters
     private static final DateTimeFormatter[] DATE_TIME_FORMATTERS = new DateTimeFormatter[]{
             DateTimeFormatter.ofPattern(ISO_DATE_TIME_BASIC),
+            DateTimeFormatter.ofPattern(ISO_DATE_TIME_IN_MILLIS),
             DateTimeFormatter.ofPattern(ISO_DATE_FORMAT),
             DateTimeFormatter.ofPattern(ISO_DATE_FORMAT_WITH_Z),
             DateTimeFormatter.ofPattern(ISO_DATE_FORMAT_WITH_XXX),
@@ -88,9 +91,9 @@ public class DateTimeParser {
         return Optional.empty();
     }
 
-    public static LocalDate smartParse(String input) {
-        // Try datetime first and fallback to date
-        return tryParseDateTime(input).map(LocalDateTime::toLocalDate)
-                .or(() -> tryParseDate(input)).get();
+    public static Comparable<?> smartParse(String input) {
+        return tryParseDateTime(input).<Comparable<?>>map(dt -> dt)
+                .or(() -> tryParseDate(input).map(date -> date))
+                .orElseThrow(() -> new IllegalArgumentException("Invalid date format: " + input));
     }
 }

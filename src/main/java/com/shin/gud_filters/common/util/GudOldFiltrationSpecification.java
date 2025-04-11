@@ -1,7 +1,10 @@
 package com.shin.gud_filters.common.util;
 
 import com.shin.gud_filters.common.FilterCriteria;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
@@ -56,30 +59,30 @@ public class GudOldFiltrationSpecification {
             case FilterCriteria.FilterOperations.ENDS_WITH -> cb.like(root.get(field), value + "%");
             case FilterCriteria.FilterOperations.LESS_THAN -> {
                 if (value instanceof LocalDate)
-                    yield cb.lessThan(dateExpression, DateTimeParser.smartParse(value.toString()));
+                    yield cb.lessThan(dateExpression, (LocalDate) DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
-                    yield cb.lessThan(dateExpression, DateTimeParser.smartParse(value.toString()));
+                    yield cb.lessThan(root.get(field), (LocalDateTime) DateTimeParser.smartParse(value.toString()));
                 yield cb.lessThan(root.get(field), (Comparable) value);
             }
             case FilterCriteria.FilterOperations.LESS_THAN_OR_EQUAL_TO -> {
                 if (value instanceof LocalDate)
-                    yield cb.lessThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
+                    yield cb.lessThanOrEqualTo(dateExpression, (LocalDate) DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
-                    yield cb.lessThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
+                    yield cb.lessThanOrEqualTo(root.get(field), (LocalDateTime) DateTimeParser.smartParse(value.toString()));
                 yield cb.lessThanOrEqualTo(root.get(field), (Comparable) value);
             }
             case FilterCriteria.FilterOperations.GREATER_THAN -> {
                 if (value instanceof LocalDate)
-                    yield cb.greaterThan(dateExpression, DateTimeParser.smartParse(value.toString()));
+                    yield cb.greaterThan(dateExpression, (LocalDate) DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
-                    yield cb.greaterThan(dateExpression, DateTimeParser.smartParse(value.toString()));
+                    yield cb.greaterThan(root.get(field), (LocalDateTime) DateTimeParser.smartParse(value.toString()));
                 yield cb.greaterThan(root.get(field), (Comparable) value);
             }
             case FilterCriteria.FilterOperations.GREATER_THAN_OR_EQUAL_TO -> {
                 if (value instanceof LocalDate)
-                    yield cb.greaterThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
+                    yield cb.greaterThanOrEqualTo(dateExpression, (LocalDate) DateTimeParser.smartParse(value.toString()));
                 else if (value instanceof LocalDateTime)
-                    yield cb.greaterThanOrEqualTo(dateExpression, DateTimeParser.smartParse(value.toString()));
+                    yield cb.greaterThanOrEqualTo(root.get(field), (LocalDateTime) DateTimeParser.smartParse(value.toString()));
                 yield cb.greaterThanOrEqualTo(root.get(field), (Comparable) value);
             }
             default -> cb.notEqual(root.get(field), value);

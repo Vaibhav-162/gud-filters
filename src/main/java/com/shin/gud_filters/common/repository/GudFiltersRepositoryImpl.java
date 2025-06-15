@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
@@ -27,8 +28,6 @@ import java.util.Optional;
 public class GudFiltersRepositoryImpl<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements GudFiltersRepository<T, ID> {
     private final EntityManager entityManager;
     private final JpaMetamodelEntityInformation<T, ?> entityInformation;
-    private Integer totalPageCount;
-    private Long totalRows;
     Logger logger = LoggerFactory.getLogger(GudFiltersRepositoryImpl.class);
 
 
@@ -72,20 +71,23 @@ public class GudFiltersRepositoryImpl<T, ID extends Serializable> extends Simple
         if (Optional.ofNullable(spec).isPresent()) {
             query.where(spec.toPredicate(root, query, criteriaBuilder));
         }
-
         if (!page.getSort().isEmpty()) {
             query.orderBy(GudOldSort.buildOrderBy(page.getSort(), root, criteriaBuilder));
         }
-        return executeQuery(query, page);
+        return executeQuery(query, criteriaBuilder, page);
     }
 
-    private Page<T> executeQuery(CriteriaQuery<T> query, Pageable page) {
+    private Page<T> executeQuery(CriteriaQuery<T> query, CriteriaBuilder criteriaBuilder, Pageable page) {
         TypedQuery<T> typedQuery = entityManager.createQuery(query);
         List<T> content = typedQuery.setFirstResult(page.getPageNumber() * page.getPageSize())
                 .setMaxResults(page.getPageSize()).getResultList();
-        int total = entityManager.createQuery(query).getResultList().size();
-        logger.info("total elements {}", total);
-        return new PageImpl<T>(content, page, total);
+
+        CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
+        Root<T> root = countQuery.from(getEntityClass());
+        countQuery.select(criteriaBuilder.count(root));
+        Long totalElements = entityManager.createQuery(countQuery).getSingleResult();
+        logger.info("Total Elements {}", totalElements);
+        return new PageImpl<T>(content, page, totalElements);
     }
 
     private Class<T> getEntityClass() {
